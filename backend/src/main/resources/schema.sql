@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS announcement (
     severity VARCHAR(20) NOT NULL,
     created_at TIMESTAMP NOT NULL,
     expires_at TIMESTAMP NOT NULL,
-    links JSON,
+    links VARCHAR(2000),
     related_announcement_id BIGINT,
     CONSTRAINT fk_related_announcement
     FOREIGN KEY (related_announcement_id)

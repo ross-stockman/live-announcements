@@ -1,10 +1,14 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import AnnouncementsPage from './components/AnnouncementsPage';
+// import WebSocketTest from "./components/WebSocketTest.tsx";
+// import WebSocketTest2 from "./components/WebSocketTest2.tsx";
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+
+    // <React.StrictMode>
+    //     <AnnouncementsPage />
+    //     {/*<WebSocketTest />*/}
+    // </React.StrictMode>
+<AnnouncementsPage />
+);

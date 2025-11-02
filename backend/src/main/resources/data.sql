@@ -1,4 +1,3 @@
-
 -- Standalone announcements (active)
 INSERT INTO announcement (title, content, type, severity, created_at, expires_at, links, related_announcement_id)
 VALUES
