@@ -54,6 +54,11 @@
 }
 
 .severityInfo {
+    border-left: 4px solid green;
+    background-color: #e5ffe5;
+}
+
+.severityTest {
     border-left: 4px solid blue;
     background-color: #e5f4ff;
 }

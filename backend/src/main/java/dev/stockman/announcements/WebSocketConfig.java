@@ -12,9 +12,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*"); // Allow only the frontend origin
-//                .withSockJS(); // Enable SockJS fallback for non-WebSocket clients
+        registry.addEndpoint("/ws").setAllowedOriginPatterns("*");
     }
 
     @Override

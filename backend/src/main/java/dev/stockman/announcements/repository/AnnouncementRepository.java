@@ -6,8 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.stockman.announcements.model.Announcement;
 import dev.stockman.announcements.model.Link;
 import dev.stockman.announcements.model.Severity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -18,6 +16,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,22 +26,19 @@ import java.util.Optional;
 @Repository
 public class AnnouncementRepository {
 
-    private static final Logger logger = LoggerFactory.getLogger(AnnouncementRepository.class);
-
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
+    private final Clock clock;
 
-    public AnnouncementRepository(NamedParameterJdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
+    public AnnouncementRepository(NamedParameterJdbcTemplate jdbcTemplate, ObjectMapper objectMapper, Clock clock) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
+        this.clock = clock;
     }
 
     private final RowMapper<Announcement> rowMapper = new RowMapper<Announcement>() {
         @Override
         public Announcement mapRow(ResultSet rs, int rowNum) throws SQLException {
-            // Use getString directly - it properly converts H2's JSON to String
-            String linksJson = rs.getString("links");
-            System.out.println(linksJson);
             return new Announcement(
                     rs.getLong("id"),
                     rs.getString("title"),
@@ -51,25 +47,19 @@ public class AnnouncementRepository {
                     Severity.valueOf(rs.getString("severity")),
                     rs.getTimestamp("created_at").toLocalDateTime(),
                     rs.getTimestamp("expires_at").toLocalDateTime(),
-                    parsedLinks(linksJson),
+                    parsedLinks(rs.getString("links")),
                     rs.getObject("related_announcement_id", Long.class)
             );
         }
     };
 
     private List<Link> parsedLinks(String linksJson) {
-        logger.debug("parsedLinks called with: {}", linksJson);
-
         if (linksJson == null || linksJson.isBlank()) {
-            logger.debug("linksJson is null or blank, returning empty list");
             return new ArrayList<>();
         }
         try {
-            List<Link> links = objectMapper.readValue(linksJson, new TypeReference<>() {});
-            logger.debug("Successfully parsed {} links", links.size());
-            return links;
+            return objectMapper.readValue(linksJson, new TypeReference<>() {});
         } catch (JsonProcessingException e) {
-            logger.error("Failed to parse links JSON: {}", linksJson, e);
             return new ArrayList<>();
         }
     }
@@ -90,7 +80,6 @@ public class AnnouncementRepository {
             INSERT INTO announcement (title, content, type, severity, created_at, expires_at, links, related_announcement_id)
             VALUES (:title, :content, :type, :severity, :createdAt, :expiresAt, :links, :relatedAnnouncementId)
             """;
-
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("title", announcement.title())
                 .addValue("content", announcement.content())
@@ -103,7 +92,6 @@ public class AnnouncementRepository {
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(sql, params, keyHolder);
-
         Long id = Objects.requireNonNull(keyHolder.getKey()).longValue();
 
         return new Announcement(
@@ -169,7 +157,7 @@ public class AnnouncementRepository {
             """);
 
         MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("now", Timestamp.valueOf(LocalDateTime.now()));
+                .addValue("now", Timestamp.valueOf(LocalDateTime.now(clock)));
 
         if (severities != null && !severities.isEmpty()) {
             sql.append(" AND severity IN (:severities)");

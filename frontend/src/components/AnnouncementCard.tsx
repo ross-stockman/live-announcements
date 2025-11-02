@@ -16,6 +16,8 @@ const AnnouncementCard: React.FC<AnnouncementCardProps> = ({ announcement }) => 
                 return styles.severityWarning;
             case "INFO":
                 return styles.severityInfo;
+            case "TEST":
+                return styles.severityTest;
             default:
                 return "";
         }

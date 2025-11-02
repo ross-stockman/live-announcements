@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import {type Announcement, fetchLatestAnnouncements} from "../services/AnnouncementService.ts";
 import AnnouncementCard from "./AnnouncementCard.tsx";
 import {Client} from '@stomp/stompjs';
@@ -10,35 +10,30 @@ const AnnouncementsPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     const WS_URL = "ws://localhost:8080/ws";
-    const TOPIC = "/topic/announcements"; // Subscribed topic
+    const TOPIC = "/topic/announcements";
 
     useEffect(() => {
-        // Function to fetch announcements from the API
         const loadAnnouncements = async () => {
             try {
                 setLoading(true);
                 const response = await fetchLatestAnnouncements();
-                setAnnouncements(response.content); // Set the fetched announcements
+                setAnnouncements(response.content);
             } catch (err) {
                 console.error('[AnnouncementsPage]: Failed to load announcements', err);
                 setError('Failed to fetch announcements. Please try again later.');
             } finally {
-                setLoading(false); // Ensure loading state is turned off
+                setLoading(false);
             }
         };
-
-        // Initialize WebSocket client for real-time updates
         const client = new Client({
             brokerURL: WS_URL,
-            reconnectDelay: 5000, // Reconnect every 5 seconds if disconnected
-            debug: (msg) => console.log("[STOMP DEBUG]:", msg), // Debug logs
+            reconnectDelay: 5000,
+            debug: (msg) => console.log("[STOMP DEBUG]:", msg),
             onConnect: () => {
                 console.log("✅ Connected to WebSocket server");
-
-                // Subscribe to the announcements topic
                 client.subscribe(TOPIC, (message) => {
                     console.log("📢 Announcement received:", message.body);
-                    loadAnnouncements(); // Fetch the latest announcements when notified
+                    loadAnnouncements();
                 });
             },
             onStompError: (frame) => {
@@ -50,14 +45,11 @@ const AnnouncementsPage: React.FC = () => {
                 console.log("🔌 Disconnected from WebSocket server");
             },
         });
+        loadAnnouncements();
+        client.activate();
 
-        // Trigger both API fetch and WebSocket connection
-        loadAnnouncements(); // Fetch announcements
-        client.activate(); // Activate the WebSocket connection
-
-        // Cleanup on component unmount
         return () => {
-            client.deactivate(); // Deactivate WebSocket client
+            client.deactivate();
         };
     }, []);
 

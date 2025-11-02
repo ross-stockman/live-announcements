@@ -78,3 +78,15 @@ VALUES
      DATEADD('DAY', -1, CURRENT_TIMESTAMP()),
      NULL,
      NULL);
+
+-- Test message
+INSERT INTO announcement (title, content, type, severity, created_at, expires_at, links, related_announcement_id)
+VALUES
+    ('TEST: Advanced Analytics',
+     'This is a test announcement. No action is required.',
+     'Test',
+     'TEST',
+     CURRENT_TIMESTAMP(),
+     DATEADD('DAY', 1, CURRENT_TIMESTAMP()),
+     NULL,
+     NULL);

@@ -21,9 +21,7 @@ public class WebSocketNotificationService {
 
     public void notifyAnnouncementCreated(Announcement announcement) {
         AnnouncementNotification notification = new AnnouncementNotification(announcement);
-
         logger.info("Publishing WebSocket notification for announcement: type={}, severity={}", announcement.type(), announcement.severity());
-
         messagingTemplate.convertAndSend(ANNOUNCEMENT_TOPIC, notification);
     }
 }
