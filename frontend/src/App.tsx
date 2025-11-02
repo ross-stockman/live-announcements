@@ -1,8 +1,10 @@
+import AnnouncementsPage from "./components/AnnouncementsPage.tsx";
+
 function App() {
 
   return (
     <>
-      <h1>Hello World!</h1>
+      <AnnouncementsPage />
     </>
   )
 }
