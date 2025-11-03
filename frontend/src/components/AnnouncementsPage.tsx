@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import {type Announcement, fetchLatestAnnouncements} from "../services/AnnouncementService.ts";
 import AnnouncementCard from "./AnnouncementCard.tsx";
-import WebSocketService from "../services/WebSocketService.ts";
-import type {AnnouncementNotification, WebSocketError} from "../types.ts";
+import WebSocketService, {type WebSocketError} from "../services/WebSocketService.ts";
+
+export interface AnnouncementNotification {
+    id: number;
+    relatedAnnouncementId: number;
+    type: string;
+    severity: string;
+    timestamp: string;
+}
 
 const AnnouncementsPage: React.FC = () => {
 

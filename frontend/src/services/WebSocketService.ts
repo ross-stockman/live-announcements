@@ -1,5 +1,4 @@
 import { Client, type IMessage, type IFrame } from '@stomp/stompjs';
-import type {WebSocketError} from "../types.ts";
 
 const WS_URL = "ws://localhost:8080/ws";
 
@@ -9,6 +8,11 @@ interface WebSocketConnectionOptions<T> {
     onError?: (error: WebSocketError) => void;
     onConnect?: () => void;
     onDisconnect?: () => void;
+}
+
+export interface WebSocketError {
+    message: string;
+    details?: string;
 }
 
 class WebSocketService {
