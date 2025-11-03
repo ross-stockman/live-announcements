@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import {type Announcement, fetchLatestAnnouncements} from "../services/AnnouncementService.ts";
 import AnnouncementCard from "./AnnouncementCard.tsx";
-import {Client} from '@stomp/stompjs';
+import WebSocketService from "../services/WebSocketService.ts";
+import type {AnnouncementNotification, WebSocketError} from "../types.ts";
 
 const AnnouncementsPage: React.FC = () => {
 
@@ -9,7 +10,6 @@ const AnnouncementsPage: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    const WS_URL = "ws://localhost:8080/ws";
     const TOPIC = "/topic/announcements";
 
     useEffect(() => {
@@ -25,31 +25,29 @@ const AnnouncementsPage: React.FC = () => {
                 setLoading(false);
             }
         };
-        const client = new Client({
-            brokerURL: WS_URL,
-            reconnectDelay: 5000,
-            debug: (msg) => console.log("[STOMP DEBUG]:", msg),
-            onConnect: () => {
-                console.log("✅ Connected to WebSocket server");
-                client.subscribe(TOPIC, (message) => {
-                    console.log("📢 Announcement received:", message.body);
-                    loadAnnouncements();
-                });
-            },
-            onStompError: (frame) => {
-                console.error("❌ STOMP error:", frame.headers["message"]);
-                console.error("Details:", frame.body);
-                setError('WebSocket connection error. Please try again later.');
-            },
-            onDisconnect: () => {
-                console.log("🔌 Disconnected from WebSocket server");
-            },
-        });
+
+        const handleWebSocketMessage = (notification: AnnouncementNotification) => {
+            console.log("📢 Announcement received:", notification);
+            loadAnnouncements();
+        };
+
+        const handleWebSocketError = (error: WebSocketError) => {
+            console.error("WebSocket error:", error);
+            setError(`${error.message}: ${error.details || "No additional details available."}`);
+        };
+
         loadAnnouncements();
-        client.activate();
+
+        WebSocketService.connect({
+            topic: TOPIC,
+            onMessage: handleWebSocketMessage,
+            onError: handleWebSocketError,
+            onConnect: () => console.log("Connected to announcements topic"),
+            onDisconnect: () => console.log("Disconnected from WebSocket"),
+        });
 
         return () => {
-            client.deactivate();
+            WebSocketService.disconnect();
         };
     }, []);
 
